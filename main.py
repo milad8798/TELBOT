@@ -1,25 +1,18 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler, CallbackContext
 
+# توکن رباتت رو اینجا بزار
 TOKEN = "8384449381:AAGDJNJaLAZ0f983ZN5SiPx8v4LAk52kAjs"
 
-# /start command
 def start(update: Update, context: CallbackContext):
-    keyboard = [
-        [InlineKeyboardButton("دکمه 1", callback_data='btn1')],
-        [InlineKeyboardButton("دکمه 2", callback_data='btn2')]
-    ]
+    keyboard = [[InlineKeyboardButton("👋 سلام", callback_data='hello')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text("سلام! یکی از دکمه‌ها رو بزن:", reply_markup=reply_markup)
+    update.message.reply_text("ربات روشنه ✅", reply_markup=reply_markup)
 
-# Callback for buttons
 def button(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()
-    if query.data == 'btn1':
-        query.edit_message_text("شما دکمه 1 رو زدید ✅")
-    elif query.data == 'btn2':
-        query.edit_message_text("شما دکمه 2 رو زدید ✅")
+    query.edit_message_text(text=f"شما زدید: {query.data}")
 
 def main():
     updater = Updater(TOKEN, use_context=True)
