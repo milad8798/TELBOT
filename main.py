@@ -1,119 +1,35 @@
-import telebot
-
-TOKEN = "8384449381:AAGDJNJaLAZ0f983ZN5SiPx8v4LAk52kAjs"
-
-bot = telebot.TeleBot(TOKEN)
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 
 TOKEN = "8384449381:AAGDJNJaLAZ0f983ZN5SiPx8v4LAk52kAjs"
 
-# 🔥 دسته‌بندی گان‌ها
-categories = {
-    "AR": ["AK-47","AK117","AN-94","AS VAL","CR-56 AMAX","FAMAS","FFAR","Grau 5.56","HBRa3","ICR-1","Kilo 141","KN-44","LK24","M13","Man-O-War","Type 25","QBZ-95","XM4"],
-    "SMG": ["MSMC","PDW-57","Razorback","PP19 Bizon","GKS","MX9","VMP","CX-9","Striker 45","KSP-45"],
-    "Sniper": ["DL Q33","Locus","Arctic .50","XPR-50","M21 EBR","NA-45","Outlaw","HDR"],
-    "Marksman": ["SP-R 208","SKS","SVD","Type 63"],
-    "LMG": ["Holger 26","Hades","UL736","Raal MG","MG 42"],
-    "Shotgun": ["R9-0","Striker","HS0405"]
-}
-
-PAGE_SIZE = 9
-
-# 🟢 حذف خودکار پیام
-async def auto_delete(context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.delete_message(chat_id=context.job.chat_id, message_id=context.job.data)
-
-# 🟢 ارسال پیام با تایمر حذف
-async def send_with_timer(update, context, text, reply_markup=None):
-    msg = await update.message.reply_text(text, reply_markup=reply_markup)
-    context.job_queue.run_once(auto_delete, 60, chat_id=msg.chat_id, data=msg.message_id)
-
-# 🔹 مرحله اول: انتخاب مود
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    kb = [
-        [InlineKeyboardButton("🔥 بتل (Battle)", callback_data="mode_battle")],
-        [InlineKeyboardButton("⚡️ مولتی (Multiplayer)", callback_data="mode_multi")]
+# /start command
+def start(update: Update, context: CallbackContext):
+    keyboard = [
+        [InlineKeyboardButton("دکمه 1", callback_data='btn1')],
+        [InlineKeyboardButton("دکمه 2", callback_data='btn2')]
     ]
-    msg = await update.message.reply_text("👇 مود بازی رو انتخاب کن:", reply_markup=InlineKeyboardMarkup(kb))
-    context.job_queue.run_once(auto_delete, 60, chat_id=msg.chat_id, data=msg.message_id)
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text("سلام! یکی از دکمه‌ها رو بزن:", reply_markup=reply_markup)
 
-# 🔹 ساخت کیبورد دسته‌ها
-def category_keyboard(mode):
-    kb = [[InlineKeyboardButton(cat, callback_data=f"cat_{mode}_{cat}")] for cat in categories.keys()]
-    kb.append([InlineKeyboardButton("⬅️ بازگشت به انتخاب مود", callback_data="back_mode")])
-    return InlineKeyboardMarkup(kb)
+# Callback for buttons
+def button(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
+    if query.data == 'btn1':
+        query.edit_message_text("شما دکمه 1 رو زدید ✅")
+    elif query.data == 'btn2':
+        query.edit_message_text("شما دکمه 2 رو زدید ✅")
 
-# 🔹 ساخت صفحه‌بندی ۳×۳ برای گان‌ها + دکمه بازگشت
-def guns_keyboard(mode, cat, page=0):
-    guns = categories[cat]
-    items = guns[page*PAGE_SIZE:(page+1)*PAGE_SIZE]
-    keyboard = []
-    for i in range(0, len(items), 3):
-        row = [InlineKeyboardButton(items[j], callback_data=f"gun_{mode}_{items[j]}") for j in range(i, min(i+3, len(items)))]
-        keyboard.append(row)
+def main():
+    updater = Updater(TOKEN, use_context=True)
+    dp = updater.dispatcher
 
-    nav = []
-    if page > 0:
-        nav.append(InlineKeyboardButton("⬅️ قبلی", callback_data=f"page_{mode}_{cat}_{page-1}"))
-    if (page+1)*PAGE_SIZE < len(guns):
-        nav.append(InlineKeyboardButton("➡️ بعدی", callback_data=f"page_{mode}_{cat}_{page+1}"))
-    if nav:
-        keyboard.append(nav)
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CallbackQueryHandler(button))
 
-    keyboard.append([InlineKeyboardButton("⬅️ بازگشت به دسته‌ها", callback_data=f"back_cat_{mode}")])
-    return InlineKeyboardMarkup(keyboard)
+    updater.start_polling()
+    updater.idle()
 
-# 🔹 مدیریت دکمه‌ها
-async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    q = update.callback_query
-    await q.answer()
-    data = q.data
-
-    # 🔸 بازگشت به انتخاب مود
-    if data == "back_mode":
-        kb = [
-            [InlineKeyboardButton("🔥 بتل (Battle)", callback_data="mode_battle")],
-            [InlineKeyboardButton("⚡️ مولتی (Multiplayer)", callback_data="mode_multi")]
-        ]
-        msg = await q.edit_message_text("👇 مود بازی رو انتخاب کن:", reply_markup=InlineKeyboardMarkup(kb))
-        context.job_queue.run_once(auto_delete, 60, chat_id=msg.chat_id, data=msg.message_id)
-
-    # 🔸 بازگشت به دسته‌ها
-    elif data.startswith("back_cat_"):
-        mode = data.split("_")[2]
-        msg = await q.edit_message_text(f"🔹 مود انتخاب شده: {mode.upper()}\n📂 دسته‌بندی گان‌ها رو انتخاب کن:", reply_markup=category_keyboard(mode))
-        context.job_queue.run_once(auto_delete, 60, chat_id=msg.chat_id, data=msg.message_id)
-
-    # 🔸 انتخاب مود
-    elif data.startswith("mode_"):
-        mode = data.split("_")[1]
-        msg = await q.edit_message_text(f"🔹 مود انتخاب شد: {mode.upper()}\n📂 دسته‌بندی گان‌ها رو انتخاب کن:", reply_markup=category_keyboard(mode))
-        context.job_queue.run_once(auto_delete, 60, chat_id=msg.chat_id, data=msg.message_id)
-
-# 🔸 نمایش گان‌ها
-    elif data.startswith("cat_"):
-        _, mode, cat = data.split("_")
-        msg = await q.edit_message_text(f"📂 دسته: {cat} | مود: {mode.upper()}", reply_markup=guns_keyboard(mode, cat, 0))
-        context.job_queue.run_once(auto_delete, 60, chat_id=msg.chat_id, data=msg.message_id)
-
-    # 🔸 صفحه‌بندی گان‌ها
-    elif data.startswith("page_"):
-        _, mode, cat, page = data.split("_")
-        msg = await q.edit_message_text(f"📂 {cat} | صفحه {int(page)+1}", reply_markup=guns_keyboard(mode, cat, int(page)))
-        context.job_queue.run_once(auto_delete, 60, chat_id=msg.chat_id, data=msg.message_id)
-
-    # 🔸 انتخاب گان
-    elif data.startswith("gun_"):
-        _, mode, gun = data.split("_", 2)
-        msg = await q.edit_message_text(f"✅ گان انتخابی: {gun}\n🎮 مود: {mode.upper()}")
-        context.job_queue.run_once(auto_delete, 60, chat_id=msg.chat_id, data=msg.message_id)
-
-# 🔹 اجرای ربات
-app = Application.builder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CallbackQueryHandler(button))
-
-print("✅ ربات بدون خطا و با دکمه بازگشت آماده است!")
-app.run_polling()
+if name == "main":
+    main()
