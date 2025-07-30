@@ -1,28 +1,29 @@
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# توکن رباتت رو اینجا بزار
+logging.basicConfig(level=logging.INFO)
+
 TOKEN = "8384449381:AAGDJNJaLAZ0f983ZN5SiPx8v4LAk52kAjs"
 
-def start(update: Update, context: CallbackContext):
-    keyboard = [[InlineKeyboardButton("👋 سلام", callback_data='hello')]]
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("دکمه ۱", callback_data="btn1")],
+        [InlineKeyboardButton("دکمه ۲", callback_data="btn2")]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text("ربات روشنه ✅", reply_markup=reply_markup)
+    await update.message.reply_text("سلام! یکی از دکمه‌ها رو انتخاب کن:", reply_markup=reply_markup)
 
-def button(update: Update, context: CallbackContext):
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    query.answer()
-    query.edit_message_text(text=f"شما زدید: {query.data}")
+    await query.answer()
+    await query.edit_message_text(f"شما {query.data} رو زدی ✅")
 
 def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
-
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CallbackQueryHandler(button))
-
-    updater.start_polling()
-    updater.idle()
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button))
+    app.run_polling()
 
 if name == "main":
     main()
