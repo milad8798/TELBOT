@@ -1,4 +1,3 @@
-میلاد, [7/31/2025 4:16 PM]
 import logging
 import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -95,7 +94,7 @@ async def login_username(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔑 پسورد:")
     return PASSWORD
 
-میلاد, [7/31/2025 4:16 PM]
+
 async def login_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = context.user_data["username"]
     password = update.message.text
