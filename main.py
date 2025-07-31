@@ -24,7 +24,7 @@ USERNAME, PASSWORD = range(2)
 
 HELP_TEXT = """📖 راهنمای استفاده از ربات:
 
-1️⃣ /register → ثبت‌نام کاربر  
+1️⃣ /start → ثبت‌نام کاربر  
 2️⃣ /login → ورود به حساب  
 3️⃣ /menu → نمایش منوی اصلی  
 4️⃣ انتخاب مود → انتخاب گان → مشاهده نتیجه  
@@ -68,7 +68,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     asyncio.create_task(auto_delete(context, msg.chat_id, msg.message_id))
 
 # 🟢 ثبت‌نام
-async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("👤 لطفاً نام کاربری خود را وارد کنید:")
     return USERNAME
 
