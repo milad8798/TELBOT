@@ -153,7 +153,7 @@ def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     reg_conv = ConversationHandler(
-        entry_points=[CommandHandler("register", register)],
+        entry_points=[CommandHandler("start", start)],
         states={USERNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_username)],
                 PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_password)]},
         fallbacks=[]
